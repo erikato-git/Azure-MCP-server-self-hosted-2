@@ -58,9 +58,9 @@ param delegatedPermissions array = ['User.Read']
 param location string
 param vnetEnabled bool
 
-@description('Which service to deploy. Only one function app is provisioned per deployment.')
-@allowed(['tools', 'weather', 'resources', 'prompts', 'apps'])
-param deployService string = 'tools'
+@description('Which service to deploy. Use "all" to provision all function apps in one deployment.')
+@allowed(['all', 'tools', 'weather', 'resources', 'prompts', 'apps'])
+param deployService string = 'all'
 
 param toolsServiceName string = ''
 param toolsUserAssignedIdentityName string = ''
@@ -80,11 +80,12 @@ param principalId string = deployer().objectId
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var tags = { 'azd-env-name': environmentName }
-var deployTools = deployService == 'tools'
-var deployWeather = deployService == 'weather'
-var deployResources = deployService == 'resources'
-var deployPrompts = deployService == 'prompts'
-var deployApps = deployService == 'apps'
+var deployAll = deployService == 'all'
+var deployTools = deployService == 'tools' || deployAll
+var deployWeather = deployService == 'weather' || deployAll
+var deployResources = deployService == 'resources' || deployAll
+var deployPrompts = deployService == 'prompts' || deployAll
+var deployApps = deployService == 'apps' || deployAll
 var toolsFunctionAppName = !empty(toolsServiceName) ? toolsServiceName : '${abbrs.webSitesFunctions}tools-${resourceToken}'
 var weatherFunctionAppName = !empty(weatherServiceName) ? weatherServiceName : '${abbrs.webSitesFunctions}weather-${resourceToken}'
 var resourcesFunctionAppName = !empty(resourcesServiceName) ? resourcesServiceName : '${abbrs.webSitesFunctions}resources-${resourceToken}'
@@ -162,16 +163,61 @@ module appsUserAssignedIdentity 'br/public:avm/res/managed-identity/user-assigne
   }
 }
 
-// Create an App Service Plan to group applications under the same payment plan and SKU
-module appServicePlan 'br/public:avm/res/web/serverfarm:0.1.1' = {
-  name: 'appserviceplan'
+// Flex Consumption (FC1) allows only one function app per plan — create one plan per service
+module toolsAppServicePlan 'br/public:avm/res/web/serverfarm:0.1.1' = if (deployTools) {
+  name: 'toolsAppServicePlan'
   scope: rg
   params: {
     name: !empty(appServicePlanName) ? appServicePlanName : '${abbrs.webServerFarms}${resourceToken}'
-    sku: {
-      name: 'FC1'
-      tier: 'FlexConsumption'
-    }
+    sku: { name: 'FC1', tier: 'FlexConsumption' }
+    reserved: true
+    location: location
+    tags: tags
+  }
+}
+
+module weatherAppServicePlan 'br/public:avm/res/web/serverfarm:0.1.1' = if (deployWeather) {
+  name: 'weatherAppServicePlan'
+  scope: rg
+  params: {
+    name: '${abbrs.webServerFarms}weather-${resourceToken}'
+    sku: { name: 'FC1', tier: 'FlexConsumption' }
+    reserved: true
+    location: location
+    tags: tags
+  }
+}
+
+module resourcesAppServicePlan 'br/public:avm/res/web/serverfarm:0.1.1' = if (deployResources) {
+  name: 'resourcesAppServicePlan'
+  scope: rg
+  params: {
+    name: '${abbrs.webServerFarms}resources-${resourceToken}'
+    sku: { name: 'FC1', tier: 'FlexConsumption' }
+    reserved: true
+    location: location
+    tags: tags
+  }
+}
+
+module promptsAppServicePlan 'br/public:avm/res/web/serverfarm:0.1.1' = if (deployPrompts) {
+  name: 'promptsAppServicePlan'
+  scope: rg
+  params: {
+    name: '${abbrs.webServerFarms}prompts-${resourceToken}'
+    sku: { name: 'FC1', tier: 'FlexConsumption' }
+    reserved: true
+    location: location
+    tags: tags
+  }
+}
+
+module appsAppServicePlan 'br/public:avm/res/web/serverfarm:0.1.1' = if (deployApps) {
+  name: 'appsAppServicePlan'
+  scope: rg
+  params: {
+    name: '${abbrs.webServerFarms}apps-${resourceToken}'
+    sku: { name: 'FC1', tier: 'FlexConsumption' }
     reserved: true
     location: location
     tags: tags
@@ -187,7 +233,7 @@ module tools './app/api.bicep' = if (deployTools) {
     location: location
     tags: tags
     applicationInsightsName: monitoring.outputs.name
-    appServicePlanId: appServicePlan.outputs.resourceId
+    appServicePlanId: toolsAppServicePlan!.outputs.resourceId
     runtimeName: 'dotnet-isolated'
     runtimeVersion: '10.0'
     storageAccountName: storage.outputs.name
@@ -236,7 +282,7 @@ module weather './app/api.bicep' = if (deployWeather) {
     location: location
     tags: tags
     applicationInsightsName: monitoring.outputs.name
-    appServicePlanId: appServicePlan.outputs.resourceId
+    appServicePlanId: weatherAppServicePlan!.outputs.resourceId
     runtimeName: 'dotnet-isolated'
     runtimeVersion: '10.0'
     storageAccountName: storage.outputs.name
@@ -261,7 +307,7 @@ module resources './app/api.bicep' = if (deployResources) {
     location: location
     tags: tags
     applicationInsightsName: monitoring.outputs.name
-    appServicePlanId: appServicePlan.outputs.resourceId
+    appServicePlanId: resourcesAppServicePlan!.outputs.resourceId
     runtimeName: 'dotnet-isolated'
     runtimeVersion: '10.0'
     storageAccountName: storage.outputs.name
@@ -286,7 +332,7 @@ module prompts './app/api.bicep' = if (deployPrompts) {
     location: location
     tags: tags
     applicationInsightsName: monitoring.outputs.name
-    appServicePlanId: appServicePlan.outputs.resourceId
+    appServicePlanId: promptsAppServicePlan!.outputs.resourceId
     runtimeName: 'dotnet-isolated'
     runtimeVersion: '10.0'
     storageAccountName: storage.outputs.name
@@ -311,7 +357,7 @@ module apps './app/api.bicep' = if (deployApps) {
     location: location
     tags: tags
     applicationInsightsName: monitoring.outputs.name
-    appServicePlanId: appServicePlan.outputs.resourceId
+    appServicePlanId: appsAppServicePlan!.outputs.resourceId
     runtimeName: 'dotnet-isolated'
     runtimeVersion: '10.0'
     storageAccountName: storage.outputs.name
@@ -344,7 +390,13 @@ module storage 'br/public:avm/res/storage/storage-account:0.8.3' = {
       bypass: 'AzureServices'
     }
     blobServices: {
-      containers: deployTools ? [
+      containers: deployAll ? [
+        {name: toolsDeploymentStorageContainerName}
+        {name: weatherDeploymentStorageContainerName}
+        {name: resourcesDeploymentStorageContainerName}
+        {name: promptsDeploymentStorageContainerName}
+        {name: appsDeploymentStorageContainerName}
+      ] : deployTools ? [
         {name: toolsDeploymentStorageContainerName}
       ] : deployWeather ? [
         {name: weatherDeploymentStorageContainerName}
