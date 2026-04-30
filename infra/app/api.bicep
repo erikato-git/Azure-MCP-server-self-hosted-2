@@ -39,8 +39,9 @@ param authTenantId string = ''
 @description('OAuth2 delegated permissions for App Service Authentication login flow')
 param delegatedPermissions array = ['User.Read']
 
-@description('Client application IDs to pre-authorize for the default scope')
+@description('Client application IDs to pre-authorize for the default scope (passed through but not used in allowedApplications)')
 param preAuthorizedClientIds array = []
+
 
 var applicationInsightsIdentity = 'ClientId=${identityClientId};Authorization=AAD'
 var kind = 'functionapp,linux'
@@ -145,7 +146,6 @@ module api 'br/public:avm/res/web/site:0.21.0' = {
                 ]
                 defaultAuthorizationPolicy: {
                   allowedPrincipals: {}
-                  allowedApplications: union([authClientId], preAuthorizedClientIds)
                 }
               }
               isAutoProvisioned: false

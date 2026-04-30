@@ -17,19 +17,7 @@
 		},
 		"tools-mcp-server": {
 			"url": "https://func-tools-qh26aeplmv43q.azurewebsites.net/runtime/webhooks/mcp",
-			"type": "http",
-			"headers": {
-				"x-functions-key": "${input:functions-mcp-extension-system-key}"
-			}
+			"type": "http"
 		}
 	},
-	"inputs": [
-		{
-			"type": "promptString",
-			"id": "functions-mcp-extension-system-key",
-			"description": "Azure Functions MCP Extension System Key for tools-mcp-server",
-			"password": true
-		},
-
-	]
 }
