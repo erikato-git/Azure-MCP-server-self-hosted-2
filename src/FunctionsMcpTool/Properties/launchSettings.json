@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "FunctionsMcpTool": {
+      "commandName": "Executable",
+      "executablePath": "func",
+      "commandLineArgs": "start",
+      "workingDirectory": "$(ProjectDir)",
+      "launchBrowser": false,
+      "environmentVariables": {
+        "AZURE_FUNCTIONS_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
