@@ -17,6 +17,7 @@ public class HelloTool(ILogger<HelloTool> logger)
     }
 
     /// <summary>
+    /// Tool to confirm system works for local development.
     /// Tool properties for this function are defined in Program.cs using
     /// ConfigureMcpTool, rather than McpToolProperty input binding attributes.
     /// </summary>

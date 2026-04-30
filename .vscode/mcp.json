@@ -19,5 +19,6 @@
 			"url": "https://func-tools-qh26aeplmv43q.azurewebsites.net/runtime/webhooks/mcp",
 			"type": "http"
 		}
+
 	},
 }

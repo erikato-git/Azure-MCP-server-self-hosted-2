@@ -21,5 +21,14 @@ builder
     .ConfigureMcpTool(EchoToolName)
     .WithProperty(EchoMessagePropertyName, McpToolPropertyType.String, EchoMessagePropertyDescription, required: true);
 
+builder
+    .ConfigureMcpTool(AzureEventsReportName)
+    .WithProperty(AiSubscriptionNamesPropertyName, McpToolPropertyType.String, AiSubscriptionNamesPropertyDescription, required: false)
+    .WithProperty(AiResourceGroupPropertyName, McpToolPropertyType.String, AiResourceGroupPropertyDescription, required: false)
+    .WithProperty(AiTimeRangePropertyName, McpToolPropertyType.String, AiTimeRangePropertyDescription, required: false)
+    .WithProperty(AiSeverityPropertyName, McpToolPropertyType.String, AiSeverityPropertyDescription, required: false)
+    .WithProperty(AiEventIdPropertyName, McpToolPropertyType.String, AiEventIdPropertyDescription, required: false)
+    .WithProperty(AiOperationIdPropertyName, McpToolPropertyType.String, AiOperationIdPropertyDescription, required: false)
+    .WithProperty(AiStackFrameLimitPropertyName, McpToolPropertyType.String, AiStackFrameLimitPropertyDescription, required: false);
 
 builder.Build().Run();

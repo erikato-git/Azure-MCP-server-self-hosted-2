@@ -63,5 +63,39 @@ internal sealed class ToolsInformation
     public const string WebsiteUrlPropertyName = "url";
     public const string WebsiteUrlPropertyDescription = "The URL of the website to preview.";
 
+    // Azure Events Report tool
+    public const string AzureEventsReportName = "azure_events_reports";
+    public const string AzureEventsReportDescription =
+        "Generates a report of Application Insights events across Azure resource groups. " +
+        "Automatically discovers all subscriptions and App Insights resources. " +
+        "Provides a severity-grouped summary with trend comparison, top exceptions, slowest requests, and error rates. " +
+        "Supports drill-down into a specific event or operation chain by providing event_id or operation_id.";
 
+    public const string AiSubscriptionNamesPropertyName = "subscription_names";
+    public const string AiSubscriptionNamesPropertyDescription =
+        "Comma-separated subscription display names to filter (e.g. 'pay-as-you-go,dev-sub'). Omit to query all subscriptions.";
+
+    public const string AiResourceGroupPropertyName = "resource_group";
+    public const string AiResourceGroupPropertyDescription =
+        "Name of a specific resource group to query. Omit to query all resource groups.";
+
+    public const string AiTimeRangePropertyName = "time_range";
+    public const string AiTimeRangePropertyDescription =
+        "Time window to analyse. Use a number followed by 'h' (hours) or 'd' (days). Examples: '24h', '7d', '6h'. Defaults to '24h'.";
+
+    public const string AiSeverityPropertyName = "severity";
+    public const string AiSeverityPropertyDescription =
+        "Comma-separated severity levels to filter: Critical, Error, Warning, Information, Verbose. Omit to include all severities.";
+
+    public const string AiEventIdPropertyName = "event_id";
+    public const string AiEventIdPropertyDescription =
+        "Application Insights internal event ID (itemId). When provided, returns detailed drill-down for that specific event including stack trace and full operation chain.";
+
+    public const string AiOperationIdPropertyName = "operation_id";
+    public const string AiOperationIdPropertyDescription =
+        "Application Insights operation_Id. When provided, returns the full operation chain (all related events ±30 min around the operation).";
+
+    public const string AiStackFrameLimitPropertyName = "stack_frame_limit";
+    public const string AiStackFrameLimitPropertyDescription =
+        "Maximum number of stack frames to include in exception drill-down output. Defaults to 15.";
 }
