@@ -32,11 +32,17 @@
     </Content>
     <None Update="app\dist\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
   </ItemGroup>
+
+  <Target Name="BuildViteFrontend" BeforeTargets="BeforePublish">
+    <Exec Command="npm install" WorkingDirectory="$(MSBuildProjectDirectory)/app" />
+    <Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)/app" />
+  </Target>
 
 </Project>

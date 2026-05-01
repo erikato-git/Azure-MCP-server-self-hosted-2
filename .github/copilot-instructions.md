@@ -18,7 +18,7 @@ The project deploys 5 services: `tools`, `weather`, `resources`, `prompts`, `app
 - `azd deploy <service>` — code-only redeploy for a single service. Use this for all normal code changes. Much faster (~1-2 min).
 - `azd deploy` — redeploys all 5 services without touching infrastructure.
 
-**Examples using known environment values (from `.azure/` folder):**
+**Examples using known environment values (from `.azure/<environment-name>/.env`):**
 
 ```sh
 # Redeploy only the tools service after a code change
@@ -32,6 +32,10 @@ azd env get-values
 ```
 
 **Required environment variables** (already set after first `azd up`):
-- `AZURE_SUBSCRIPTION_ID`, `AZURE_LOCATION`, `VNET_ENABLED`, `DEPLOY_SERVICE`
+- `AZURE_SUBSCRIPTION_ID`, `AZURE_LOCATION`, `VNET_ENABLED`, `DEPLOY_SERVICE` (stored in `.azure/<environment-name>/.env`)
 
 **Do not run `azd up` for pure code changes** — it re-validates all infrastructure and is unnecessarily slow.
+
+## Application Insights & Monitoring
+
+For Azure Monitor and Application Insights queries, see [application-insights-instructions.md](.github/application-insights-instructions.md) for pre-configured values and cost-optimized query patterns. This eliminates discovery overhead on each monitoring request.

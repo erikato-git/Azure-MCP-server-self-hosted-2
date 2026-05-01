@@ -38,36 +38,11 @@ internal sealed class ToolsInformation
     public const string SnippetItemsPropertyDescription =
         "Array of snippets to save, each as an object with a single property where the key is the snippet name and the value is the content. Example: [{\"hello\": \"console.log('hi')\"}, {\"bye\": \"console.log('bye')\"}]";
 
-    // QR code tool
-    public const string GenerateQrCodeToolName = "generate_qr_code";
-    public const string GenerateQrCodeToolDescription =
-        "Generates a QR code image from the provided text.";
-    public const string QrCodeTextPropertyName = "text";
-    public const string QrCodeTextPropertyDescription = "The text or URL to encode as a QR code.";
-
-    // Badge tool
-    public const string GenerateBadgeToolName = "generate_badge";
-    public const string GenerateBadgeToolDescription =
-        "Generates an SVG status badge with a label and value.";
-    public const string BadgeLabelPropertyName = "label";
-    public const string BadgeLabelPropertyDescription = "The label on the left side of the badge (e.g., 'build', 'version').";
-    public const string BadgeValuePropertyName = "value";
-    public const string BadgeValuePropertyDescription = "The value on the right side of the badge (e.g., 'passing', '1.0.0').";
-    public const string BadgeColorPropertyName = "color";
-    public const string BadgeColorPropertyDescription = "Hex color for the value background (e.g., '#4CAF50' for green). Defaults to green.";
-
-    // Website preview tool
-    public const string GetWebsitePreviewToolName = "get_website_preview";
-    public const string GetWebsitePreviewToolDescription =
-        "Fetches a website's title and description, returning a text summary and resource link.";
-    public const string WebsiteUrlPropertyName = "url";
-    public const string WebsiteUrlPropertyDescription = "The URL of the website to preview.";
-
     // Azure Events Report tool
     public const string AzureEventsReportName = "azure_events_reports";
     public const string AzureEventsReportDescription =
-        "Generates a report of Application Insights events across Azure resource groups. " +
-        "Automatically discovers all subscriptions and App Insights resources. " +
+        "Generates a report of Application Insights specific for one selected resource group." +
+        "Automatically discovers all subscriptions and App Insights resources for an user. " +
         "Provides a severity-grouped summary with trend comparison, top exceptions, slowest requests, and error rates. " +
         "Supports drill-down into a specific event or operation chain by providing event_id or operation_id.";
 
