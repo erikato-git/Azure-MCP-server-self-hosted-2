@@ -5,7 +5,7 @@
 			"url": "http://localhost:7071/runtime/webhooks/mcp"
 		},
 		"tools-mcp-server": {
-			"url": "https://func-tools-qh26aeplmv43q.azurewebsites.net/runtime/webhooks/mcp",
+			"url": "https://func-tools-zhzfxhqk62ue2.azurewebsites.net/runtime/webhooks/mcp",
 			"type": "http"
 		}
 	},
