@@ -1,4 +1,5 @@
 using Azure.Storage.Blobs;
+using FunctionsMcpTool.Helpers;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +14,13 @@ builder.Services
     .AddApplicationInsightsTelemetryWorkerService()
     .ConfigureFunctionsApplicationInsights()
     .AddSingleton(_ => new BlobServiceClient(
-        Environment.GetEnvironmentVariable("AzureWebJobsStorage")));
+        Environment.GetEnvironmentVariable("AzureWebJobsStorage")))
+    .AddSingleton<LogsTableReader>()
+    .AddSingleton<OutputFormatter>()
+    .AddSingleton<CredentialBuilder>()
+    .AddSingleton<ResourceDiscoveryService>()
+    .AddSingleton<KqlQueryService>()
+    .AddSingleton<ReportBuilder>();
 
 // Demonstrate how you can define tool properties in Program.cs
 // without requiring McpToolProperty input binding attributes:
