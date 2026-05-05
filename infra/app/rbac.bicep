@@ -1,5 +1,6 @@
 param storageAccountName string
 param appInsightsName string
+param logAnalyticsWorkspaceName string = ''
 param managedIdentityPrincipalId string = '' // Principal ID for the API Managed Identity
 param weatherManagedIdentityPrincipalId string = '' // Principal ID for the Weather App Managed Identity
 param resourcesManagedIdentityPrincipalId string = '' // Principal ID for the Resources App Managed Identity
@@ -16,6 +17,8 @@ var storageRoleDefinitionId  = 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b' //Storage 
 var queueRoleDefinitionId = '974c5e8b-45b9-4653-ba55-5f855dd0fb88' // Storage Queue Data Contributor role
 var tableRoleDefinitionId = '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3' // Storage Table Data Contributor role
 var monitoringRoleDefinitionId = '3913510d-42f4-4e42-8a64-420c390055eb' // Monitoring Metrics Publisher role ID
+var logAnalyticsReaderRoleDefinitionId = '73c42c96-874c-492b-b04d-ab87d138a893' // Log Analytics Reader role ID
+var monitoringReaderRoleDefinitionId = '43d0d8ad-25c7-4714-9337-8ba259a9fe05' // Monitoring Reader role ID
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' existing = {
   name: storageAccountName
@@ -23,6 +26,10 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' existing 
 
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   name: appInsightsName
+}
+
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = if (!empty(logAnalyticsWorkspaceName)) {
+  name: logAnalyticsWorkspaceName
 }
 
 // Role assignment for Storage Account (Blob) - Managed Identity
@@ -93,12 +100,34 @@ resource tableRoleAssignment_User 'Microsoft.Authorization/roleAssignments@2022-
 
 // Role assignment for Application Insights - Managed Identity
 resource appInsightsRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(managedIdentityPrincipalId)) {
-  name: guid(applicationInsights.id, managedIdentityPrincipalId, monitoringRoleDefinitionId) // Use managed identity ID
+  name: guid(applicationInsights.id, managedIdentityPrincipalId, monitoringRoleDefinitionId)
   scope: applicationInsights
   properties: {
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', monitoringRoleDefinitionId)
-    principalId: managedIdentityPrincipalId // Use managed identity ID
-    principalType: 'ServicePrincipal' // Managed Identity is a Service Principal
+    principalId: managedIdentityPrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Monitoring Reader on App Insights — allows LogsQueryClient to query via the AI resource endpoint
+resource appInsightsMonitoringReaderRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(managedIdentityPrincipalId)) {
+  name: guid(applicationInsights.id, managedIdentityPrincipalId, monitoringReaderRoleDefinitionId)
+  scope: applicationInsights
+  properties: {
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', monitoringReaderRoleDefinitionId)
+    principalId: managedIdentityPrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Log Analytics Reader on workspace — allows LogsQueryClient to run KQL queries against the underlying workspace
+resource logAnalyticsReaderRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(managedIdentityPrincipalId) && !empty(logAnalyticsWorkspaceName)) {
+  name: guid(logAnalyticsWorkspace.id, managedIdentityPrincipalId, logAnalyticsReaderRoleDefinitionId)
+  scope: logAnalyticsWorkspace
+  properties: {
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', logAnalyticsReaderRoleDefinitionId)
+    principalId: managedIdentityPrincipalId
+    principalType: 'ServicePrincipal'
   }
 }
 

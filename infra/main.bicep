@@ -431,6 +431,7 @@ module rbac 'app/rbac.bicep' = {
   params: {
     storageAccountName: storage.outputs.name
     appInsightsName: monitoring.outputs.name
+    logAnalyticsWorkspaceName: logAnalytics.outputs.name
     managedIdentityPrincipalId: deployTools ? toolsUserAssignedIdentity!.outputs.principalId : ''
     weatherManagedIdentityPrincipalId: deployWeather ? weatherUserAssignedIdentity!.outputs.principalId : ''
     resourcesManagedIdentityPrincipalId: deployResources ? resourcesUserAssignedIdentity!.outputs.principalId : ''

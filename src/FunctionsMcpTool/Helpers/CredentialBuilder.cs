@@ -19,6 +19,23 @@ public class CredentialBuilder(IHostEnvironment hostEnvironment)
         return BuildOnBehalfOf(context);
     }
 
+    // OBO cannot exchange tokens for loganalytics.io scope; use the function
+    // app's managed identity directly for Log Analytics queries instead.
+    internal TokenCredential BuildForLogs()
+    {
+        if (hostEnvironment.IsDevelopment())
+            return new ChainedTokenCredential(
+                new AzureCliCredential(),
+                new VisualStudioCodeCredential(),
+                new VisualStudioCredential(),
+                new AzureDeveloperCliCredential());
+
+        var miClientId = Environment.GetEnvironmentVariable("OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID")
+            ?? throw new InvalidOperationException("OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID is not set.");
+
+        return new ManagedIdentityCredential(miClientId);
+    }
+
     private static TokenCredential BuildOnBehalfOf(ToolInvocationContext context)
     {
         if (!context.TryGetHttpTransport(out var transport))

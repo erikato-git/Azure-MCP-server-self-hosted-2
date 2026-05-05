@@ -36,7 +36,7 @@ public class ApplicationInsightsTool(
         var severityFilter = outputFormatter.ParseSeverityFilter(severity);
 
         var armClient = new ArmClient(credential); // [SPEC-15]
-        var logsClient = new LogsQueryClient(credential); // [SPEC-15]
+        var logsClient = new LogsQueryClient(credentialBuilder.BuildForLogs()); // [SPEC-15]
 
         var discovery = await discoveryService.DiscoverAsync(armClient, subscriptionNames, resourceGroupFilter);
 
