@@ -17,10 +17,10 @@ Your subscription has 4 Log Analytics workspaces. **Use these for monitoring que
 
 | Workspace Name | Workspace ID | Use Case |
 |---|---|---|
-| `log-zhzfxhqk62ue2` | `a67bb9b1-bf47-4fe8-9fe3-f24c1a5d8963` | MCP Server logs (primary) |
-| `log-qh26aeplmv43q` | `abe32c14-9b7b-4f1f-8d91-65b49d9d1fe8` | (secondary deployment) |
-| `DefaultWorkspace-ee3decd2-e126-4d8e-b42c-4df305c8e6e8-WEU` | `504bd06e-c630-4c27-860c-09eaef05ff17` | Default workspace |
-| `JiraGithubConversationEngine-law` | `d4269411-39cb-43e7-a4d6-d555340c1764` | (unrelated project) |
+| `log-zhzfxhqk62ue2` | `<LOG_ANALYTICS_WORKSPACE_ID_PRIMARY>` | MCP Server logs (primary) |
+| `log-qh26aeplmv43q` | `<LOG_ANALYTICS_WORKSPACE_ID_SECONDARY>` | (secondary deployment) |
+| `DefaultWorkspace-<SUBSCRIPTION_ID>-WEU` | `<LOG_ANALYTICS_WORKSPACE_ID_DEFAULT>` | Default workspace |
+| `JiraGithubConversationEngine-law` | `<LOG_ANALYTICS_WORKSPACE_ID_OTHER>` | (unrelated project) |
 
 **Primary Workspace for this project:** `log-zhzfxhqk62ue2`
 

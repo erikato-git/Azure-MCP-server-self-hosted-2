@@ -10,11 +10,11 @@
 
 ### SPEC-01 — Authentication: OBO flow
 
-**Decision:** In production the tool acquires Azure tokens through the On-Behalf-Of (OBO) flow: the user's bearer token is extracted from App Service Authentication headers and exchanged for downstream ARM and Log Analytics tokens via a managed-identity federated credential. In local development a `ChainedTokenCredential` tries Azure CLI, VS Code, Visual Studio, and Azure Developer CLI in order.
+**Decision:** In production the tool acquires Azure tokens through the On-Behalf-Of (OBO) flow for ARM: the user's bearer token is extracted from App Service Authentication headers and exchanged for an ARM token via a managed-identity federated credential. Log Analytics queries use the function app's managed identity directly (`BuildForLogs`) because OBO cannot exchange tokens for the `loganalytics.io` scope. In local development both paths fall back to a `ChainedTokenCredential` that tries Azure CLI, VS Code, Visual Studio, and Azure Developer CLI in order.
 
-**Why:** OBO propagates the end-user's identity to downstream Azure APIs so that RBAC is enforced on behalf of the caller rather than the function's own identity.
+**Why:** OBO propagates the end-user's identity to ARM so that RBAC is enforced on behalf of the caller. The managed identity is used for Log Analytics to work around the OBO scope limitation.
 
-**Implementing code:** `BuildCredential`, `BuildOnBehalfOfCredential`, `GetUserToken`, `GetTenantId`, `BuildClientAssertionCallback`; the `ChainedTokenCredential` line in the dev branch.
+**Implementing code:** `Build`, `BuildOnBehalfOf`, `BuildForLogs`, `GetUserToken`, `GetTenantId`, `BuildClientAssertionCallback` in `CredentialBuilder`; the `ChainedTokenCredential` blocks in the dev branches.
 
 ---
 
@@ -24,7 +24,7 @@
 
 **Why:** Hard-coding subscription IDs would require redeployment every time the customer adds or renames a subscription; dynamic discovery keeps the tool maintenance-free.
 
-**Implementing code:** `DiscoverAppInsightsResourcesAsync` — `GetAllAsync()` call and `nameFilter` guard condition; `subscription_names` parameter read in `Run`.
+**Implementing code:** `DiscoverAsync` in `ResourceDiscoveryService` — `GetAllAsync()` call and `nameFilter` guard condition; `subscription_names` parameter read in `Run`.
 
 ---
 
@@ -34,7 +34,7 @@
 
 **Why:** Limiting to a subset would hide categories of failures; unioning all five gives a complete picture of an application's health in a single query pass.
 
-**Implementing code:** The `union` at the start of `trendQuery` in `GenerateResourceSummaryAsync`; the `union` in `DrillDownByEventIdAsync`; the `union` in `GetOperationChainAsync`.
+**Implementing code:** The `union` at the start of `TrendQuery` in `KqlQueries`; the `union` in `EventByIdQuery`; the `union` in `OperationChainQuery`.
 
 ---
 
@@ -54,7 +54,7 @@
 
 **Why:** A single parameter-driven entry point reduces cognitive load for the AI agent calling the tool and avoids an extra round-trip to select a mode.
 
-**Implementing code:** `if (!string.IsNullOrEmpty(eventId) || !string.IsNullOrEmpty(operationId))` routing block in `Run`; `if (!string.IsNullOrEmpty(eventId))` priority check in `DrillDownAsync`.
+**Implementing code:** `if (!string.IsNullOrEmpty(eventId) || !string.IsNullOrEmpty(operationId))` routing block in `Run`; `if (!string.IsNullOrEmpty(eventId))` priority check in `BuildDrillDownAsync`.
 
 ---
 
@@ -64,7 +64,7 @@
 
 **Why:** An AI agent like Claude Code can render markdown natively in chat. Structured output removes the need for the agent to parse or reformat data before presenting it to the user.
 
-**Implementing code:** `sb.AppendLine("# Application Insights Event Report")` as the root header in `GenerateSummaryAsync`; table and section construction throughout `GenerateResourceSummaryAsync` and `GetOperationChainAsync`.
+**Implementing code:** `sb.AppendLine("# Application Insights Event Report")` as the root header in `BuildSummaryAsync`; table and section construction throughout `BuildResourceSummaryAsync` and `BuildOperationChainAsync`.
 
 ---
 
@@ -84,7 +84,7 @@
 
 **Why:** Comparing against an equal preceding window makes the trend meaningful regardless of time-of-day or day-of-week patterns.
 
-**Implementing code:** `kqlPrev = ToKqlDuration(duration * 2)` in `GenerateResourceSummaryAsync`; `trendQuery` `union` comment line; `TrendIndicator` method signature; `ParseTrendData`.
+**Implementing code:** `kqlPrev = formatter.ToKqlDuration(duration * 2)` in `BuildResourceSummaryAsync`; `TrendQuery` `union` in `KqlQueries`; `TrendIndicator` in `OutputFormatter`; `ParseTrendData` in `KqlQueryService`.
 
 ---
 
@@ -94,7 +94,7 @@
 
 **Why:** Distributed traces are typically short-lived; a tight ±30-minute window avoids returning unrelated operations while still capturing slow dependency chains.
 
-**Implementing code:** `timeFilter` string construction inside `GetOperationChainAsync` — `todatetime(...) - 30m .. todatetime(...) + 30m`.
+**Implementing code:** `timeFilter` string construction inside `BuildOperationChainAsync` — `todatetime(...) - 30m .. todatetime(...) + 30m`.
 
 ---
 
@@ -104,7 +104,7 @@
 
 **Why:** Providing the stack trace and the full operation chain in a single response avoids additional round-trips and gives the AI agent everything needed to diagnose an issue.
 
-**Implementing code:** `FormatStackTrace(details, stackFrameLimit)` call in `DrillDownByEventIdAsync`; `GetOperationChainAsync` invocation that follows; `union` in `GetOperationChainAsync` which collects details for all event types.
+**Implementing code:** `kqlQueryService.FormatStackTrace(details, stackFrameLimit)` call in `DrillDownByEventIdAsync`; `BuildOperationChainAsync` invocation that follows; `union` in `OperationChainQuery` in `KqlQueries` which collects details for all event types.
 
 ---
 
@@ -124,7 +124,7 @@
 
 **Why:** Severity-first ordering surfaces the most actionable events immediately without requiring the user to scan a time series.
 
-**Implementing code:** `SeverityLabel` method signature (maps integer level to string); KQL `summarize count = count() by period, eventType, severityLevel` in `trendQuery`; `ParseTrendData` which keys data by `(eventType, severityLabel)`.
+**Implementing code:** `SeverityLabel` in `OutputFormatter` (maps integer level to string); KQL `summarize count = count() by period, eventType, severityLevel` in `TrendQuery` in `KqlQueries`; `ParseTrendData` in `KqlQueryService` which keys data by `(eventType, severityLabel)`.
 
 ---
 
@@ -134,7 +134,7 @@
 
 **Why:** Silently skipping reduces noise (no empty tables), while still reporting the groups prevents the user from wondering whether those resource groups were scanned at all.
 
-**Implementing code:** `if (resources.Count == countBefore)` check in `DiscoverAppInsightsResourcesAsync` which adds to `emptyGroups`; `if (emptyInSub.Count > 0)` block in `GenerateSummaryAsync` which prints the note.
+**Implementing code:** `if (resources.Count == countBefore)` check in `DiscoverAsync` in `ResourceDiscoveryService` which adds to `emptyGroups`; `if (emptyInSub.Count > 0)` block in `BuildSummaryAsync` which prints the note.
 
 ---
 
@@ -150,11 +150,11 @@
 
 ### SPEC-15 — OBO scopes: ARM + Log Analytics
 
-**Decision:** The single `TokenCredential` built by `BuildCredential` is passed to both `ArmClient` (which requests `https://management.azure.com/` tokens) and `LogsQueryClient` (which requests `https://api.loganalytics.io/` tokens). Each SDK client requests the appropriate scope automatically; no manual scope management is required in tool code.
+**Decision:** Two separate credentials are used. `ArmClient` receives the OBO credential built by `Build` (propagates the user's identity to ARM). `LogsQueryClient` receives a separate credential built by `BuildForLogs` — in production this is a `ManagedIdentityCredential` because OBO cannot exchange tokens for the `https://api.loganalytics.io/` scope; in development both use the same `ChainedTokenCredential`.
 
-**Why:** A single credential object simplifies the code and ensures consistent OBO token exchange for both downstream APIs.
+**Why:** OBO does not support the Log Analytics scope, so the function app's own managed identity is used for Log Analytics while the user's identity is still propagated to ARM for RBAC.
 
-**Implementing code:** `new ArmClient(credential)` and `new LogsQueryClient(credential)` in `Run`.
+**Implementing code:** `new ArmClient(credential)` and `new LogsQueryClient(credentialBuilder.BuildForLogs())` in `Run`; `BuildForLogs` in `CredentialBuilder`.
 
 ---
 
@@ -184,7 +184,7 @@
 
 **Why:** Four parallel KQL queries fired concurrently cover the most actionable dimensions of operational health without making the output so long that an AI agent loses context.
 
-**Implementing code:** `trendTask`, `requestsTask`, `topExTask`, and `slowestTask` — the four `SafeQueryAsync` calls in `GenerateResourceSummaryAsync` that run concurrently via `Task.WhenAll`.
+**Implementing code:** `trendTask`, `requestsTask`, `topExTask`, and `slowestTask` — the four `SafeQueryAsync` calls in `BuildResourceSummaryAsync` that run concurrently via `Task.WhenAll`.
 
 ---
 
@@ -194,7 +194,7 @@
 
 **Why:** Uncapped stack traces can be hundreds of lines long, consuming excessive context window. A default of 15 frames covers most root-cause scenarios while keeping output concise.
 
-**Implementing code:** `DefaultStackFrameLimit = 15` constant; `if (frameCount >= frameLimit) break` inner loop guard; `if (frameCount >= frameLimit)` truncation note appended after the loop; all in `FormatStackTrace`.
+**Implementing code:** `DefaultStackFrameLimit = 15` constant in `ApplicationInsightsTool`; `if (frameCount >= frameLimit) break` inner loop guard; `if (frameCount >= frameLimit)` truncation note appended after the loop; both in `FormatStackTrace` in `KqlQueryService`.
 
 ---
 
@@ -210,7 +210,7 @@
 
 ## Code Annotation Guide
 
-Every specification listed above has one or more corresponding `// [SPEC-XX]` inline comments in `src/FunctionsMcpTool/ApplicationInsightsTool.cs`. The comment appears on the first significant line of each implementing code section — either a method signature, a variable declaration, or a control-flow statement. Where a spec is implemented inside a KQL string literal (where a `//` comment would be invalid), the annotation is placed on the C# comment line immediately above the string assignment.
+Every specification listed above has one or more corresponding `// [SPEC-XX]` inline comments spread across the helper files: `ApplicationInsightsTool.cs`, `CredentialBuilder.cs`, `ResourceDiscoveryService.cs`, `ReportBuilder.cs`, `OutputFormatter.cs`, `KqlQueryService.cs`, and `KqlQueries.cs`. The comment appears on the first significant line of each implementing code section — either a method signature, a variable declaration, or a control-flow statement. Where a spec is implemented inside a KQL string literal (where a `//` comment would be invalid), the annotation is placed on the C# comment line immediately above the string assignment.
 
 SPEC-17 (Language: English) is a cross-cutting design choice with no single implementing line; it is intentionally not annotated in source.
 

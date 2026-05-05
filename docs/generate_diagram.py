@@ -3,203 +3,104 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
-fig, ax = plt.subplots(figsize=(18, 13))
-ax.set_xlim(0, 18)
-ax.set_ylim(0, 13)
+fig, ax = plt.subplots(figsize=(16, 10))
+ax.set_xlim(0, 16)
+ax.set_ylim(0, 10)
 ax.axis("off")
-fig.patch.set_facecolor("#F8F9FA")
+fig.patch.set_facecolor("white")
 
-HEADER_TOOL   = "#2E86AB"
-HEADER_MODEL  = "#A23B72"
-HEADER_CONST  = "#F18F01"
-HEADER_PROG   = "#4CAF50"
-HEADER_EXT    = "#888888"
-TEXT_WHITE    = "white"
-TEXT_DARK     = "#222222"
+TOOL_COLOR   = "#AED6F1"
+HELPER_COLOR = "#A9DFBF"
+MODEL_COLOR  = "#FAD7A0"
+BORDER       = "#2C3E50"
 
-def draw_class(ax, x, y, w, h, title, header_color, sections,
-               stereotype=None, header_h=0.55):
+def box(x, y, w, h, label, color):
     ax.add_patch(mpatches.FancyBboxPatch(
-        (x, y), w, h, boxstyle="round,pad=0.05",
-        linewidth=1.2, edgecolor=header_color, facecolor="white", zorder=2))
-    ax.add_patch(mpatches.FancyBboxPatch(
-        (x, y + h - header_h), w, header_h, boxstyle="round,pad=0.04",
-        linewidth=0, facecolor=header_color, zorder=3))
-    cy = y + h - header_h / 2
-    if stereotype:
-        ax.text(x + w/2, cy + 0.13, f"«{stereotype}»",
-                ha="center", va="center", fontsize=6.5,
-                color=TEXT_WHITE, zorder=4, style="italic")
-        ax.text(x + w/2, cy - 0.14, title,
-                ha="center", va="center", fontsize=8.5,
-                color=TEXT_WHITE, fontweight="bold", zorder=4)
-    else:
-        ax.text(x + w/2, cy, title,
-                ha="center", va="center", fontsize=9,
-                color=TEXT_WHITE, fontweight="bold", zorder=4)
-    current_y = y + h - header_h
-    for section in sections:
-        ax.plot([x, x+w], [current_y, current_y],
-                color=header_color, linewidth=0.8, zorder=3)
-        for i, line in enumerate(section):
-            ax.text(x + 0.12, current_y - 0.18 - i * 0.22, line,
-                    ha="left", va="top", fontsize=6.8,
-                    color=TEXT_DARK, zorder=4, fontfamily="monospace")
-        current_y -= len(section) * 0.22 + 0.12
+        (x, y), w, h,
+        boxstyle="round,pad=0.07",
+        linewidth=1.3, edgecolor=BORDER, facecolor=color, zorder=2))
+    ax.text(x + w / 2, y + h / 2, label,
+            ha="center", va="center", fontsize=8.5,
+            fontweight="bold", color="#1A1A1A", zorder=3,
+            multialignment="center")
 
-def draw_ext(ax, x, y, w, h, label):
-    ax.add_patch(mpatches.FancyBboxPatch(
-        (x, y), w, h, boxstyle="round,pad=0.05",
-        linewidth=1, edgecolor=HEADER_EXT, facecolor="#EEEEEE",
-        zorder=2, linestyle="dashed"))
-    ax.text(x + w/2, y + h/2, label,
-            ha="center", va="center", fontsize=7.5,
-            color="#555555", style="italic", zorder=3)
-
-def arrow(ax, x1, y1, x2, y2, color="#555", dashed=False):
+def arr(x1, y1, x2, y2):
     ax.annotate("", xy=(x2, y2), xytext=(x1, y1),
-                arrowprops=dict(arrowstyle="->", color=color, lw=1.1,
-                                linestyle=(0,(5,4)) if dashed else "solid"),
+                arrowprops=dict(arrowstyle="->", color="#555555",
+                                lw=1.1, connectionstyle="arc3,rad=0.0"),
                 zorder=1)
 
-# ── PROGRAM (top-left) ───────────────────────────────────────────────────────
-draw_class(ax, 0.4, 10.5, 3.2, 2.6, "Program", HEADER_PROG, sections=[
-    ["+ CreateHostBuilder()"],
-    ["  ► Registers: BlobServiceClient",
-     "  ► Registers: AppInsights",
-     "  ► ConfigureMcpTool(echo_message)",
-     "  ► AddAzureFunctionsWorker"],
-])
+# ── Tool classes ──────────────────────────────────────────────
+box(0.3,  8.2, 2.6, 0.9, "HelloTool",                TOOL_COLOR)
+box(3.3,  8.2, 2.8, 0.9, "HelloToolWithAuth",        TOOL_COLOR)
+box(6.5,  8.2, 3.2, 0.9, "ApplicationInsightsTool",  TOOL_COLOR)
+box(10.3, 8.2, 2.6, 0.9, "SnippetsTool",             TOOL_COLOR)
 
-# ── TOOLS INFORMATION (top-right) ────────────────────────────────────────────
-draw_class(ax, 13.2, 10.5, 4.5, 2.6, "ToolsInformation", HEADER_CONST,
-           stereotype="sealed constants", sections=[
-    ["EchoToolName / EchoToolDescription",
-     "HelloToolName / HelloToolDescription",
-     "HelloToolWithAuthName / ...",
-     "GetSnippetToolName / ...",
-     "SaveSnippetToolName / ...",
-     "BatchSaveSnippetsToolName / ..."],
-])
+# ── Helper / Service classes ──────────────────────────────────
+box(0.3,  5.6, 2.6, 0.9, "CredentialBuilder",        HELPER_COLOR)
+box(3.3,  5.6, 3.0, 0.9, "ResourceDiscovery\nService", HELPER_COLOR)
+box(6.8,  5.6, 2.4, 0.9, "OutputFormatter",          HELPER_COLOR)
+box(9.8,  5.6, 2.4, 0.9, "ReportBuilder",            HELPER_COLOR)
+box(12.8, 5.6, 2.8, 0.9, "LogsTableReader",          HELPER_COLOR)
 
-# ── HELLO TOOL ───────────────────────────────────────────────────────────────
-draw_class(ax, 0.4, 6.8, 3.5, 3.1, "HelloTool", HEADER_TOOL,
-           stereotype="McpTool", sections=[
-    ["─ logger: ILogger<HelloTool>"],
-    ["+ HelloTool(ILogger)"],
-    ["+ SayHello(context) : string",
-     "+ EchoMessage(context) : string"],
-])
+box(5.0,  3.4, 2.8, 0.9, "KqlQueryService",          HELPER_COLOR)
+box(8.4,  3.4, 2.4, 0.9, "KqlQueries\n(static)",     HELPER_COLOR)
 
-# ── HELLO TOOL WITH AUTH ──────────────────────────────────────────────────────
-draw_class(ax, 4.5, 6.6, 4.2, 3.5, "HelloToolWithAuth", HEADER_TOOL,
-           stereotype="McpTool", sections=[
-    ["─ logger: ILogger<HelloToolWithAuth>",
-     "─ hostEnv: IHostEnvironment",
-     "─ GraphScopes: string[]"],
-    ["+ HelloToolWithAuth(ILogger, IHostEnvironment)"],
-    ["+ Run(context) : Task<string>",
-     "─ BuildOnBehalfOfCredential(ctx)",
-     "─ GetUserToken(transport)",
-     "─ GetTenantId(transport)",
-     "─ BuildClientAssertionCallback()"],
-])
+# ── Model / Record classes ────────────────────────────────────
+box(0.3,  1.2, 2.4, 0.9, "Snippet",                  MODEL_COLOR)
+box(3.8,  1.2, 2.8, 0.9, "AiDiscoveryResult",        MODEL_COLOR)
+box(7.2,  1.2, 3.0, 0.9, "AppInsightsResource",      MODEL_COLOR)
 
-# ── SNIPPETS TOOL ─────────────────────────────────────────────────────────────
-draw_class(ax, 9.3, 6.2, 4.3, 4.0, "SnippetsTool", HEADER_TOOL,
-           stereotype="McpTool", sections=[
-    ["─ logger: ILogger<SnippetsTool>",
-     '─ BlobPath = "snippets/{name}.json"'],
-    ["+ SnippetsTool(ILogger)"],
-    ["+ GetSnippet(ctx, name, blob) : Snippet?",
-     "+ GetSnippetWithMetadata(ctx, name, blob)",
-     "    : CallToolResult",
-     "+ SaveSnippet(snippet, ctx) : string",
-     "+ BatchSaveSnippets(ctx, items)",
-     "    : Task<string>",
-     "─ GetBlobServiceClient() : BlobServiceClient"],
-])
+# ── Arrows: Tools → Helpers/Models ───────────────────────────
+arr(4.7,  8.2, 1.6,  6.5)   # HelloToolWithAuth → CredentialBuilder
+arr(7.2,  8.2, 1.6,  6.5)   # AppInsightsTool   → CredentialBuilder
+arr(7.8,  8.2, 4.8,  6.5)   # AppInsightsTool   → ResourceDiscoveryService
+arr(8.1,  8.2, 8.0,  6.5)   # AppInsightsTool   → OutputFormatter
+arr(8.5,  8.2, 11.0, 6.5)   # AppInsightsTool   → ReportBuilder
+arr(11.6, 8.2, 1.5,  2.1)   # SnippetsTool      → Snippet
 
-# ── SNIPPET (model) ───────────────────────────────────────────────────────────
-draw_class(ax, 9.3, 3.8, 3.2, 2.0, "Snippet", HEADER_MODEL,
-           stereotype="McpContent", sections=[
-    ["+ Name    : string  [required]",
-     "+ Content : string?"],
-])
+# ── Arrows: Helpers → Helpers ─────────────────────────────────
+arr(11.0, 5.6, 6.4,  4.3)   # ReportBuilder     → KqlQueryService
+arr(11.4, 5.6, 13.8, 6.5)   # ReportBuilder     → LogsTableReader  (up-right)
+arr(10.6, 5.6, 8.0,  6.5)   # ReportBuilder     → OutputFormatter
+arr(6.4,  3.8, 7.6,  6.5)   # KqlQueryService   → OutputFormatter
+arr(6.8,  3.8, 14.2, 6.5)   # KqlQueryService   → LogsTableReader
+arr(7.8,  3.85, 8.4, 3.85)  # KqlQueryService   → KqlQueries
 
-# ── EXTERNAL DEPENDENCIES ─────────────────────────────────────────────────────
-draw_ext(ax, 0.4,  3.6, 2.8, 0.7,  "«interface»\nILogger<T>")
-draw_ext(ax, 4.5,  3.6, 2.8, 0.7,  "«interface»\nIHostEnvironment")
-draw_ext(ax, 13.2, 3.8, 4.5, 0.7,  "BlobServiceClient\n(Azure Storage)")
-draw_ext(ax, 4.5,  2.2, 3.8, 0.9,
-         "Azure.Identity\nTokenCredential / ChainedTokenCredential\n"
-         "OnBehalfOfCredential / ManagedIdentityCredential")
-draw_ext(ax, 9.3,  2.2, 3.0, 0.7,  "Microsoft.Graph\nGraphServiceClient")
+# ── Arrows: Helpers → Models ─────────────────────────────────
+arr(4.8,  5.6, 5.2,  2.1)   # ResourceDiscoveryService → AiDiscoveryResult
+arr(5.5,  5.6, 8.7,  2.1)   # ResourceDiscoveryService → AppInsightsResource
 
-# ── ARROWS ────────────────────────────────────────────────────────────────────
-# Program → Tool classes
-arrow(ax, 2.0, 10.5, 2.15, 9.9,  color=HEADER_PROG)
-arrow(ax, 2.0, 10.5, 6.2,  10.1, color=HEADER_PROG)
-arrow(ax, 2.0, 10.5, 11.4, 10.2, color=HEADER_PROG)
+# ── Legend ───────────────────────────────────────────────────
+legend_items = [
+    (TOOL_COLOR,   "Tool (Azure Function)"),
+    (HELPER_COLOR, "Helper / Service"),
+    (MODEL_COLOR,  "Model / Record"),
+]
+sq = 0.32   # square side length
+lx = 12.2   # left edge of legend box
+ly = 0.25   # bottom edge of legend box
+lw = 3.5
+lh = len(legend_items) * 0.52 + 0.22
 
-# Tool classes → ToolsInformation (dashed, uses constants)
-for sx, sy in [(2.15, 9.9), (6.2, 10.1), (11.4, 10.2)]:
-    arrow(ax, 13.2, 11.4, sx, sy, color=HEADER_CONST, dashed=True)
+ax.add_patch(mpatches.FancyBboxPatch(
+    (lx, ly), lw, lh,
+    boxstyle="round,pad=0.07",
+    linewidth=1, edgecolor="#AAAAAA", facecolor="#F9F9F9", zorder=4))
 
-# ILogger → Tool classes
-arrow(ax, 1.8, 4.3, 2.15, 6.8,  color=HEADER_EXT, dashed=True)
-arrow(ax, 1.8, 4.3, 6.0,  6.6,  color=HEADER_EXT, dashed=True)
-arrow(ax, 1.8, 4.3, 10.8, 6.2,  color=HEADER_EXT, dashed=True)
-
-# IHostEnvironment → HelloToolWithAuth
-arrow(ax, 5.9, 4.3, 6.2, 6.6, color=HEADER_EXT, dashed=True)
-
-# SnippetsTool → Snippet
-arrow(ax, 11.0, 6.2, 11.0, 5.8, color=HEADER_MODEL)
-
-# SnippetsTool → BlobServiceClient
-arrow(ax, 13.6, 6.2, 15.0, 4.5, color=HEADER_EXT, dashed=True)
-
-# HelloToolWithAuth → Azure Identity
-arrow(ax, 6.4, 6.6, 6.4, 3.1, color="#9B59B6", dashed=True)
-
-# HelloToolWithAuth → Microsoft Graph
-arrow(ax, 8.7, 7.0, 10.8, 2.9, color="#9B59B6", dashed=True)
-
-# ── LEGEND ───────────────────────────────────────────────────────────────────
-lx, ly = 0.4, 0.9
-ax.text(lx, ly + 0.55, "Legend", fontsize=8, fontweight="bold", color=TEXT_DARK)
-for i, (c, label) in enumerate([
-    (HEADER_PROG,  "Program (DI / startup)"),
-    (HEADER_TOOL,  "MCP Tool class"),
-    (HEADER_MODEL, "Model / data class"),
-    (HEADER_CONST, "Constants holder"),
-    (HEADER_EXT,   "External dependency"),
-]):
-    rx = lx + i * 3.2
+for i, (color, label) in enumerate(legend_items):
+    iy = ly + lh - 0.42 - i * 0.52
     ax.add_patch(mpatches.FancyBboxPatch(
-        (rx, ly), 0.35, 0.35, boxstyle="round,pad=0.03",
-        facecolor=c, edgecolor="none", zorder=5))
-    ax.text(rx + 0.45, ly + 0.17, label,
-            va="center", fontsize=7.5, color=TEXT_DARK)
+        (lx + 0.18, iy), sq, sq,
+        boxstyle="round,pad=0.02",
+        linewidth=1.1, edgecolor=BORDER, facecolor=color, zorder=5))
+    ax.text(lx + 0.18 + sq + 0.15, iy + sq / 2, label,
+            ha="left", va="center", fontsize=8, color="#1A1A1A", zorder=5)
 
-ax.annotate("", xy=(lx+0.8, ly-0.22), xytext=(lx, ly-0.22),
-            arrowprops=dict(arrowstyle="->", color="#333", lw=1.1))
-ax.text(lx+0.9, ly-0.22, "uses / composition", va="center", fontsize=7.5, color=TEXT_DARK)
+ax.set_title("FunctionsMcpTool – Class Diagram",
+             fontsize=13, fontweight="bold", pad=10, color="#1A1A1A")
 
-ax.annotate("", xy=(lx+4.8, ly-0.22), xytext=(lx+4.0, ly-0.22),
-            arrowprops=dict(arrowstyle="->", color="#333", lw=1.1,
-                            linestyle=(0,(5,4))))
-ax.text(lx+4.9, ly-0.22, "dependency injection / dashed = optional",
-        va="center", fontsize=7.5, color=TEXT_DARK)
-
-# ── TITLE ─────────────────────────────────────────────────────────────────────
-ax.text(9.0, 12.75, "FunctionsMcpTool — Klassediagram",
-        ha="center", va="top", fontsize=14, fontweight="bold", color=TEXT_DARK)
-ax.text(9.0, 12.4, "Azure Functions · Model Context Protocol (MCP)",
-        ha="center", va="top", fontsize=9, color="#666666", style="italic")
-
-plt.tight_layout(pad=0)
+plt.tight_layout()
 out = r"c:\Users\erikk\Desktop\Azure-MCP-server-self-hosted-2\docs\klassediagram.png"
-plt.savefig(out, dpi=150, bbox_inches="tight", facecolor=fig.get_facecolor())
+plt.savefig(out, dpi=150, bbox_inches="tight", facecolor="white")
 print(f"Saved: {out}")

@@ -370,3 +370,6 @@ FodyWeavers.xsd
 # bicep
 .bicepparam
 .snapshot.json
+
+# Local debug/test output
+sse_out.txt

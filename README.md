@@ -1,346 +1,181 @@
-<!--
+# AI-Powered IT Operational Insights for Azure — Just Ask in Plain Language
+
+[![LinkedIn](https://img.shields.io/badge/Built%20by-Erik%20K%20Ipsen-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/erik-k-ipsen/)
+
+This project gives companies a fully customizable AI assistant — powered by Claude or GitHub Copilot — that connects directly to Azure. Ask questions in plain language, get real answers from real data. No expertise needed. Built on a controlled, secure foundation that the company owns and manages.
+
+<img src="images/Summary response with prompt and Tool.png" alt="alt text" width="75%">
+
+<sub>Example: a plain-language prompt returning a system summary for the last 24h. The customized tool (highlighted in red) is just one example — this project lets you build your own IT operational insights tools tailored to your needs.</sub>
+
+<br/>
+
+## Content list
+
+- [Built on an Official Microsoft Template](#built-on-an-official-microsoft-template)
+- [What Problem Does This Solve?](#what-problem-does-this-solve)
+- [Who Is This For?](#who-is-this-for)
+- [Security: Data Stays in Company Control](#security-data-stays-in-company-control)
+- [Tools Already in Place](#what-can-it-do-today)
+- [Ideas for Customized Azure Tools](#build-custom-azure-tools--made-for-the-companys-needs)
+- [How Does It Work?](#how-does-it-work-the-short-version)
+
 ---
-name: Remote MCP with Azure Functions (.NET/C#)
-description: Run a remote MCP server on Azure functions.  
-page_type: sample
-languages:
-- csharp
-- bicep
-- azdeveloper
-products:
-- azure-functions
-- azure
-urlFragment: remote-mcp-functions-dotnet
+
+## What Problem Does This Solve?
+
+Getting answers out of Azure tools takes time and expertise. Alternatives like the Azure CLI or general-purpose AI agents can help — but they require technical knowledge.
+
+This project takes a different approach: customized tools built for the company's own Azure environment, secured with company identity, and simple enough for any employee to use. Instead of navigating dashboards or writing queries, just ask:
+
+> *"How is our production app performing right now?"*
+> *"Were there any errors in the payment service in the last 24 hours?"*
+
+The AI answers with real data, using the permissions of the person who asked — no technical expertise required.
+
 ---
--->
 
-# Getting Started with Remote MCP Servers using Azure Functions (.NET/C#)
+## Who Is This For?
 
-This is a quickstart template to easily build and deploy a custom remote MCP server to the cloud using Azure functions. You can clone/restore/run on your local machine with debugging, and `azd up` to have it in the cloud in a couple minutes.
+This template is a great fit for:
 
-The MCP server is configured with [built-in authentication](https://learn.microsoft.com/en-us/azure/app-service/overview-authentication-authorization) using Microsoft Entra as the identity provider.
+- **Software companies and consulting firms** on Azure — keeping developers and teams in flow by letting AI extract operational insights and troubleshoot incidents, without leaving the code editor or switching between client environments
+- **Manufacturing and enterprise companies** that use Azure for internal systems and want team leads or operations staff to access data without needing Azure expertise
 
-You can also use [API Management](https://learn.microsoft.com/azure/api-management/secure-mcp-servers) to secure the server, as well as network isolation using VNET.
+---
 
-[![Watch the video](./images/video-overview.png)](https://www.youtube.com/watch?v=XwnEtZxaokg)
+## Security: Data Stays in Company Control
 
-If you're looking for this sample in more languages check out the [Node.js/TypeScript](https://github.com/Azure-Samples/remote-mcp-functions-typescript) and [Python](https://github.com/Azure-Samples/remote-mcp-functions-python) samples.  
+Completely **self-hosted** inside the company's own Azure subscription, secured with Microsoft Entra ID — the same system behind Microsoft 365 and Teams.
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Azure-Samples/remote-mcp-functions-dotnet)
+- ✅ **Only company employees can use it** — login required, no anonymous access.
+- ✅ **Each person sees only what they're allowed to see** — the AI acts on behalf of the logged-in user, using their own Azure permissions.
+- ✅ **Data never leaves Azure** — no external services involved.
+- ✅ **No passwords stored** — short-lived security tokens only.
 
-## Prerequisites
+The AI carries the same keycard as the person using it. It can only open the doors they're allowed to open.
 
-### Required for all development approaches
+---
 
-+ [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-+ [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local?pivots=programming-language-csharp#install-the-azure-functions-core-tools) >= `4.5.0`
-+ [Azure Developer CLI](https://aka.ms/azd) **1.23.x or above** (for deployment)
+## Tools Already in Place
 
-### For Visual Studio development
+### ⭐ Application Insights Event Report (`azure_events_reports`)
 
-+ [Visual Studio 2022](https://visualstudio.microsoft.com/vs/)
-+ Make sure to select the **Azure development** workload during installation
+The standout tool. Every Azure application generates a continuous stream of monitoring data — requests, response times, errors, exceptions. Reading this data normally requires Azure Portal access and knowledge of KQL query syntax.
 
-### For Visual Studio Code development
+With this tool, anyone can simply ask:
 
-+ [Visual Studio Code](https://code.visualstudio.com/)
-+ [Azure Functions extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurefunctions)
+> *"Give me a report on the payment service for the last 24 hours."*
 
-> **Choose one**: You can use either Visual Studio OR Visual Studio Code. Both provide full debugging support, but the setup steps differ slightly.
+And get back a plain-language summary covering:
 
-Below is the architecture diagram for the Remote MCP Server using Azure Functions:
+| What it measures | What it tells you |
+|---|---|
+| Request volume and success rate | Is the app healthy? How many users are hitting it? |
+| Response times (avg, P95) | Is the app fast? Are there slowdowns under load? |
+| Errors and exceptions | What is breaking, and how often? |
+| External dependencies | Is the database or a third-party API the bottleneck? |
+| Trend comparison | Is the situation improving or getting worse vs. the previous period? |
 
-![Architecture Diagram](architecture-diagram.png)
+Supports both English and Danish responses — just ask in the language you prefer.
 
-## Prepare your local environment
+---
 
-An Azure Storage Emulator is needed for this particular sample because we will save and get snippets from blob storage. Start Azurite emulator:
+### Other Tools
 
-```shell
-docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 \
-    mcr.microsoft.com/azure-storage/azurite
-```
+- **`get_snippet` / `save_snippet` / `batch_save_snippets`** — Store and retrieve code snippets from Azure Blob Storage. Useful as a shared snippet library accessible directly from the AI assistant.
+- **`GetWeather`** — Returns current weather for any location via the Open-Meteo API. A lightweight example of connecting an external API as an MCP tool.
+- **`hello_tool_with_auth`** — Demo tool that verifies the On-Behalf-Of authentication flow works end to end. Useful as a starting point when building new tools that require user identity.
 
->**Note** if you use Azurite coming from VS Code extension you need to run `Azurite: Start` now or you will see errors.
 
-## Run and test locally
 
-### MCP Functions Tool
+## Ideas for Customized Azure Tools
 
-#### Step 1: Start the Functions host
+The tools above are just the beginning. A development team can build new tools that connect to any Azure service or internal system. Here are some ideas focused on IT operations:
 
-From the `src/FunctionsMcpTool` folder, run this command to start the Functions host locally:
+### Cost Monitoring
+> *"What did we spend on Azure last month, broken down by team?"*
 
-```shell
-cd src/FunctionsMcpTool
-func start
-```
+Connect to Azure Cost Management and let team leads check cloud spending in plain language — no Excel exports, no waiting for the monthly report.
 
-> **Note:** The MCP Resources and Prompts projects run as separate Function Apps. To start them locally alongside the tools server, open additional terminals:
->
-> ```shell
-> cd src/FunctionsMcpResources
-> func start --port 7072
-> ```
->
-> ```shell
-> cd src/FunctionsMcpPrompts
-> func start --port 7073
-> ```
+### Active Alerts Summary
+> *"Are there any open alerts in our production environment right now?"*
 
-#### Step 2: Connect to the MCP server
+Pull all active Azure Monitor alerts and present them as a readable summary. Ideal for morning stand-ups or on-call handovers.
 
-You can connect to your local MCP server using VS Code with GitHub Copilot or MCP Inspector.
+### Deployment Status
+> *"What version of the API is running in production? When was it last deployed?"*
 
-##### Option A: VS Code with GitHub Copilot
+Query deployment history and container versions to give instant answers about what is live, and when it was last changed.
 
-1. Open **.vscode/mcp.json**. Find the server called *local-mcp-function* and click **Start** above the name. The server is already set up with the running Function app's MCP endpoint:
+### Incident Investigation Assistant
+> *"There is a spike in errors in the checkout service. What changed in the last two hours?"*
 
-    ```shell
-    http://localhost:7071/runtime/webhooks/mcp
-    ```
+During an incident, automatically gather relevant context: recent deployments, error spikes, slow external dependencies, and unusual traffic patterns — all in one answer, in seconds.
 
-1. In Copilot chat **agent** mode enter a prompt to trigger the tool, e.g., select some code and enter this prompt
+### Security Posture Summary
+> *"Do we have any critical security recommendations from Microsoft Defender?"*
 
-    ```plaintext
-    Say Hello 
-    ```
+Pull from Microsoft Defender for Cloud and summarize open security findings by severity. Give security-conscious managers a weekly health check without requiring them to log into another portal.
 
-    ```plaintext
-    Save this snippet as snippet1 
-    ```
+### Database Performance Insights
+> *"Is our Azure SQL database performing well this week?"*
 
-    ```plaintext
-    Retrieve snippet1 and apply to NewFile.cs
-    ```
+Surface query performance, CPU usage, slow queries, and connection counts from Azure SQL or Cosmos DB in plain language — useful for both developers and operations teams.
 
-1. When prompted to run the tool, consent by clicking **Continue**
+### Capacity Planning
+> *"Which of our services is getting close to its limits?"*
 
-1. When you're done, press Ctrl+C in the terminal window to stop the `func.exe` host process.
+Aggregate CPU, memory, and request metrics across all services and flag anything approaching its configured maximum — before it becomes a problem.
 
-##### Option B: MCP Inspector
+### Log Search in Plain Language
+> *"Were there any failed login attempts in the last hour?"*
 
-1. In a **new terminal window**, install and run MCP Inspector
+Let developers and operations staff search application logs by just describing what they are looking for. The AI translates the question into a database query behind the scenes.
 
-    ```shell
-    npx @modelcontextprotocol/inspector
-    ```
+---
 
-1. CTRL click to load the MCP Inspector web app from the URL displayed by the app (e.g. `http://0.0.0.0:5173/#resources`)
-1. Set the transport type to `Streamable HTTP`
-1. Set the URL to your running Function app's MCP endpoint and **Connect**:
+## Project Structure — Five Independent MCP Servers
 
-    ```shell
-    http://0.0.0.0:7071/runtime/webhooks/mcp
-    ```
+![alt text](<images/Projects in src-folder.png>)
 
-1. **List Tools**. Click on a tool and **Run Tool**.
+This solution contains five Azure Functions projects, each deployable as its own MCP server. They can be enabled individually in `.vscode/mcp.json` by adding the corresponding endpoint.
 
-#### Verify local blob storage (optional)
+### ⭐ `FunctionsMcpTool` — Main project, start here
 
-After testing the snippet save functionality locally, you can verify that blobs are being stored correctly in your local Azurite storage emulator.
+This is where all operational tools are implemented, including the `azure_events_reports` tool. It is the primary project to extend when building new customized IT tools for your Azure environment. Secured with Microsoft Entra ID using the On-Behalf-Of flow so every tool call runs under the identity of the person asking.
 
-**Using Azure Storage Explorer:**
+### `FunctionsMcpApp`
 
-1. Open Azure Storage Explorer
-1. In the left panel, expand **Emulator & Attached** → **Storage Accounts** → **(Emulator - Default Ports) (Key)**
-1. Navigate to **Blob Containers** → **snippets**
-1. You should see any saved snippets as blob files in this container
-1. Double-click on any blob to view its contents and verify the snippet data was saved correctly
+Demonstrates MCP Apps — tools that return interactive UI components (HTML views) rather than plain text. Useful for building richer experiences like dashboards or visual summaries inside the AI assistant.
 
-**Using Azure CLI (alternative):**
+### `FunctionsMcpPrompts`
 
-```shell
-# List blobs in the snippets container
-az storage blob list --container-name snippets --connection-string "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;"
-```
+Contains reusable MCP Prompts — pre-built prompt templates (e.g. code review checklists, summarization, documentation generation) that can be invoked by name from the AI assistant.
 
-```shell
-# Download a specific blob to view its contents
-az storage blob download --container-name snippets --name <blob-name> --file <local-file-path> --connection-string "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;"
-```
+### `FunctionsMcpResources`
 
-### Weather MCP App
+Exposes MCP Resources — data sources the AI can read, such as code snippets stored in Azure Blob Storage or server metadata. Resources complement tools by providing context rather than performing actions.
 
-This repository also includes a Weather App sample that demonstrates MCP tools with an interactive UI. See [src/McpWeatherApp/README.md](src/McpWeatherApp/README.md) for details.
+### `McpWeatherApp`
 
-1. Build the UI:
+A standalone weather tool that calls the Open-Meteo API. A clean, minimal example of how to connect an external API as an MCP tool, useful as a reference when building new integrations.
 
-    ```shell
-    cd src/McpWeatherApp/app
-    npm install
-    npm run build
-    cd ..
-    ```
+---
 
-1. Run the function app:
+## Architecture Diagrams (for developers)
 
-    ```shell
-    func start
-    ```
+Architecture diagrams are available in [docs/architecture/](docs/architecture/). These are primarily intended for developers contributing to or extending the project.
 
-1. In **.vscode/mcp.json**, click **Start** above *local-mcp-function*
+| Diagram | What it shows |
+|---|---|
+| [Cloud System Architecture](docs/architecture/Cloud%20System%20Architecture.svg) | Bird's-eye view of the full system (SVG — opens in browser or VS Code) |
+| [Application Insights Tool Flow](docs/architecture/application-insights-flow-sequence.excalidraw) | How the Application Insights report tool works end to end |
 
-1. Ask Copilot: "What's the weather in Seattle?"
+The `.drawio` source for the system architecture is at [docs/architecture/Cloud System Architecture.drawio](docs/architecture/Cloud%20System%20Architecture.drawio). Open `.excalidraw` files with the **Excalidraw VS Code extension** (`pomdtr.excalidraw-editor`) — recommended in this repo's extension list.
 
-### Fluent API MCP App (Dynamic Dashboard)
+---
 
-The FunctionsMcpApp sample shows how to render **dynamic data** with the fluent API. The dashboard UI is a Vite-bundled TypeScript app that receives tool results via `@modelcontextprotocol/ext-apps` and renders tiles, charts, and status indicators in real time. See [src/FunctionsMcpApp/README.md](src/FunctionsMcpApp/README.md) for details.
+## Built on an Official Microsoft Template
 
-1. Build the dashboard UI:
-
-    ```shell
-    cd src/FunctionsMcpApp/app
-    npm install
-    npm run build
-    cd ..
-    ```
-
-1. Run the function app:
-
-    ```shell
-    func start
-    ```
-
-1. In **.vscode/mcp.json**, click **Start** above *local-mcp-function*
-
-1. Ask Copilot to open the Snippet Dashboard
-
-## Deploy to Azure
-
-Stop the local server with `Ctrl+C` and switch back to the root directory.
-
-### Step 1: Sign in to Azure
-
-```shell
-az login
-azd auth login
-```
-
-### Step 2: Create an environment and configure
-
-```shell
-azd env new <environment-name>
-```
-
-Configure VS Code as an allowed client application to request access tokens from Microsoft Entra:
-
-```shell
-azd env set PRE_AUTHORIZED_CLIENT_IDS aebc6443-996d-45c2-90f0-388ff96faa56
-```
-
-**Optional:** Enable VNet isolation:
-
-```bash
-azd env set VNET_ENABLED true
-```
-
-### Step 3: Deploy
-
-1. Set `DEPLOY_SERVICE` to provision one of the MCP server projects: 
-    ```shell
-    azd env set DEPLOY_SERVICE <tools, resources, prompts, weather, or apps> 
-    ```
-
-1. Provision the resources for the app: 
-    ```shell
-    azd provision
-    ```
-
-    When prompted, pick your subscription, an Azure region for the resources, and choose `false` to skip creating virtual network resources to simplify the deployment.
-
-1. Deploy the app of your choice:
-
-    ```shell
-    # Deploy only the MCP Tools (with Entra auth)
-    azd deploy --service tools
-
-    # Deploy only the MCP Resources
-    azd deploy --service resources
-
-    # Deploy only the MCP Prompts
-    azd deploy --service prompts
-
-    # Deploy only the Weather App (with access token)
-    azd deploy --service weather
-
-    # Deploy only the Fluent API App (dynamic dashboard)
-    azd deploy --service apps
-    ```
-
-### Step 4: Connect to the remote MCP server
-
-After deployment finishes, open **.vscode/mcp.json** and click **Start** above *remote-mcp-function*. You'll be prompted for `functionapp-name` (find it in your azd command output or `/.azure/*/.env` file). You'll also be prompted to authenticate with Microsoft—click **Allow** and login with your Azure subscription email.
-
->[!TIP]
->Successful connect shows the number of tools the server has. You can see more details on the interactions between VS Code and server by clicking on **More... -> Show Output** above the server name.
-
-## Redeploy and clean up
-
-**Redeploy all:** Run `azd up` as many times as needed to deploy code updates.
-
-**Redeploy one service:** Use `azd deploy tools`, `azd deploy resources`, `azd deploy prompts`, `azd deploy weather`, or `azd deploy apps` to redeploy a specific app.
-
-**Clean up:** Delete all Azure resources when done:
-
-```shell
-azd down
-```
-
-## Source Code
-
-The solution is organized into separate Azure Function projects by MCP capability:
-
-| Project | Path | Description |
-|---------|------|-------------|
-| **FunctionsMcpTool** | `src/FunctionsMcpTool/` | MCP Tools — snippet CRUD, QR code generation, badges, website preview |
-| **FunctionsMcpResources** | `src/FunctionsMcpResources/` | MCP Resources — snippet resource template, server info resource |
-| **FunctionsMcpPrompts** | `src/FunctionsMcpPrompts/` | MCP Prompts — code review checklist, summarize content, generate docs |
-| **FunctionsMcpApp** | `src/FunctionsMcpApp/` | MCP Apps (Fluent API) — dynamic dashboard with Vite UI, static hello app |
-| **McpWeatherApp** | `src/McpWeatherApp/` | Weather App — standalone MCP demo with interactive UI |
-
-The function code for the `GetSnippet` and `SaveSnippet` endpoints are defined in [`SnippetsTool.cs`](./src/FunctionsMcpTool/SnippetsTool.cs). The `McpToolsTrigger` attribute applied to the async `Run` method exposes the code function as an MCP Server.
-
-The following shows the code for a few MCP server examples (get string, get object, save object):
-
-```csharp
-[Function(nameof(GetSnippet))]
-public object GetSnippet(
-    [McpToolTrigger(GetSnippetToolName, GetSnippetToolDescription)] ToolInvocationContext context,
-    [BlobInput(BlobPath)] string snippetContent)
-{
-    return snippetContent;
-}
-
-[Function(nameof(SaveSnippet))]
-[BlobOutput(BlobPath)]
-public string SaveSnippet(
-    [McpToolTrigger(SaveSnippetToolName, SaveSnippetToolDescription)] ToolInvocationContext context,
-    [McpToolProperty(SnippetNamePropertyName, PropertyType, SnippetNamePropertyDescription)] string name,
-    [McpToolProperty(SnippetPropertyName, PropertyType, SnippetPropertyDescription)] string snippet)
-{
-    return snippet;
-}
-
-[Function(nameof(SayHello))]
-public string SayHello(
-    [McpToolTrigger(HelloToolName, HelloToolDescription)] ToolInvocationContext context
-)
-{
-    logger.LogInformation("C# MCP tool trigger function processed a request.");
-    return "Hello I am MCP Tool!";
-}
-```
-
-## Next Steps
-
-+ Add [API Management](https://github.com/Azure-Samples/remote-mcp-apim-functions-python) to your MCP server
-+ Enable VNET using VNET_ENABLED=true flag
-+ Learn more about [related MCP efforts from Microsoft](https://github.com/microsoft/mcp/tree/main/Resources)
-
-## Troubleshooting
-
-| Problem | Solution |
-|---------|----------|
-| Connection refused | Ensure Azurite is running (`docker run -p 10000:10000 -p 10001:10001 -p 10002:10002 mcr.microsoft.com/azure-storage/azurite`) |
-| API version not supported by Azurite | Pull the latest Azurite image (`docker pull mcr.microsoft.com/azure-storage/azurite`) then restart Azurite and the app |
+Built on Microsoft's official [remote-mcp-functions-dotnet](https://github.com/Azure-Samples/remote-mcp-functions-dotnet) sample, extended with enterprise authentication, real Azure integrations, and operational tools.
