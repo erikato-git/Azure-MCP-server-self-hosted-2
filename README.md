@@ -163,11 +163,17 @@ Allowed values: `tools`, `weather`, `resources`, `prompts`, `apps`, `all`. The s
 
 ---
 
-## Architecture Diagrams
+## Architecture Diagram
 
 <img src="image.png" alt="Cloud system architecture" width="75%">
 
 <sub>Cloud system architecture for `FunctionsMcpTool`. An MCP client (e.g. GitHub Copilot) sends a plain-language prompt to the MCP server hosted on Azure Functions. The server processes the request, queries Azure services, and returns the answer in natural language back to the client.</sub>
+
+### VNet Integration & Security (Optional)
+
+> **Note:** The default deployment runs **without a VNet**. The application is still secured through Entra ID authentication (all requests require a valid token), managed identity for all service-to-service access (no passwords or connection strings), HTTPS-only endpoints, and no public blob access on storage.
+>
+> A VNet can be enabled by setting `VNET_ENABLED=true` and redeploying. This adds network-level isolation — the storage account becomes fully private and accessible only through private endpoints within the VNet. However, private endpoints cost ~$7–8/month each (two are required: blob + queue), roughly **$15/month** in added infrastructure cost.
 
 ---
 
