@@ -163,7 +163,7 @@ Allowed values: `tools`, `weather`, `resources`, `prompts`, `apps`, `all`. The s
 
 ---
 
-## Architecture Diagrams
+## Architecture Diagram
 
 <img src="image.png" alt="Cloud system architecture" width="75%">
 
