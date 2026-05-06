@@ -8,17 +8,18 @@ This project gives companies a fully customizable AI assistant — powered by Cl
 
 <sub>Example: a plain-language prompt returning a system summary for the last 24h. The customized tool (highlighted in red) is just one example — this project lets you build your own IT operational insights tools tailored to your needs.</sub>
 
-<br/>
+---
 
 ## Content list
 
-- [Built on an Official Microsoft Template](#built-on-an-official-microsoft-template)
 - [What Problem Does This Solve?](#what-problem-does-this-solve)
 - [Who Is This For?](#who-is-this-for)
 - [Security: Data Stays in Company Control](#security-data-stays-in-company-control)
-- [Tools Already in Place](#what-can-it-do-today)
-- [Ideas for Customized Azure Tools](#build-custom-azure-tools--made-for-the-companys-needs)
-- [How Does It Work?](#how-does-it-work-the-short-version)
+- [Tools Already in Place](#tools-already-in-place)
+- [Ideas for Customized Azure Tools](#ideas-for-customized-azure-tools)
+- [Project Structure — Five Independent MCP Servers](#project-structure--five-independent-mcp-servers)
+- [Architecture Diagrams](#architecture-diagrams)
+- [Extending Microsoft's Official MCP Template](#extending-microsofts-official-mcp-template)
 
 ---
 
@@ -79,15 +80,13 @@ And get back a plain-language summary covering:
 
 Supports both English and Danish responses — just ask in the language you prefer.
 
----
-
 ### Other Tools
 
 - **`get_snippet` / `save_snippet` / `batch_save_snippets`** — Store and retrieve code snippets from Azure Blob Storage. Useful as a shared snippet library accessible directly from the AI assistant.
 - **`GetWeather`** — Returns current weather for any location via the Open-Meteo API. A lightweight example of connecting an external API as an MCP tool.
 - **`hello_tool_with_auth`** — Demo tool that verifies the On-Behalf-Of authentication flow works end to end. Useful as a starting point when building new tools that require user identity.
 
-
+---
 
 ## Ideas for Customized Azure Tools
 
@@ -102,11 +101,6 @@ Connect to Azure Cost Management and let team leads check cloud spending in plai
 > *"Are there any open alerts in our production environment right now?"*
 
 Pull all active Azure Monitor alerts and present them as a readable summary. Ideal for morning stand-ups or on-call handovers.
-
-### Deployment Status
-> *"What version of the API is running in production? When was it last deployed?"*
-
-Query deployment history and container versions to give instant answers about what is live, and when it was last changed.
 
 ### Incident Investigation Assistant
 > *"There is a spike in errors in the checkout service. What changed in the last two hours?"*
@@ -127,11 +121,6 @@ Surface query performance, CPU usage, slow queries, and connection counts from A
 > *"Which of our services is getting close to its limits?"*
 
 Aggregate CPU, memory, and request metrics across all services and flag anything approaching its configured maximum — before it becomes a problem.
-
-### Log Search in Plain Language
-> *"Were there any failed login attempts in the last hour?"*
-
-Let developers and operations staff search application logs by just describing what they are looking for. The AI translates the question into a database query behind the scenes.
 
 ---
 
@@ -161,21 +150,27 @@ Exposes MCP Resources — data sources the AI can read, such as code snippets st
 
 A standalone weather tool that calls the Open-Meteo API. A clean, minimal example of how to connect an external API as an MCP tool, useful as a reference when building new integrations.
 
----
+### Choosing which projects to deploy
 
-## Architecture Diagrams (for developers)
+Set `DEPLOY_SERVICE` in your azd environment before running `azd provision`:
 
-Architecture diagrams are available in [docs/architecture/](docs/architecture/). These are primarily intended for developers contributing to or extending the project.
+```powershell
+azd env set DEPLOY_SERVICE tools   # deploy only FunctionsMcpTool
+azd env set DEPLOY_SERVICE all     # deploy all five projects
+```
 
-| Diagram | What it shows |
-|---|---|
-| [Cloud System Architecture](docs/architecture/Cloud%20System%20Architecture.svg) | Bird's-eye view of the full system (SVG — opens in browser or VS Code) |
-| [Application Insights Tool Flow](docs/architecture/application-insights-flow-sequence.excalidraw) | How the Application Insights report tool works end to end |
-
-The `.drawio` source for the system architecture is at [docs/architecture/Cloud System Architecture.drawio](docs/architecture/Cloud%20System%20Architecture.drawio). Open `.excalidraw` files with the **Excalidraw VS Code extension** (`pomdtr.excalidraw-editor`) — recommended in this repo's extension list.
+Allowed values: `tools`, `weather`, `resources`, `prompts`, `apps`, `all`. The setting is stored in `.azure/<env-name>/.env` and read by [`infra/main.parameters.json`](infra/main.parameters.json).
 
 ---
 
-## Built on an Official Microsoft Template
+## Architecture Diagrams
 
-Built on Microsoft's official [remote-mcp-functions-dotnet](https://github.com/Azure-Samples/remote-mcp-functions-dotnet) sample, extended with enterprise authentication, real Azure integrations, and operational tools.
+<img src="image.png" alt="Cloud system architecture" width="75%">
+
+<sub>Cloud system architecture for `FunctionsMcpTool`. An MCP client (e.g. GitHub Copilot) sends a plain-language prompt to the MCP server hosted on Azure Functions. The server processes the request, queries Azure services, and returns the answer in natural language back to the client.</sub>
+
+---
+
+## Extending Microsoft's Official Azure MCP-Server Template
+
+Built on top of Microsoft's [remote-mcp-functions-dotnet](https://github.com/Azure-Samples/remote-mcp-functions-dotnet), adding Entra ID On-Behalf-Of authentication, Application Insights querying across Azure subscriptions, and an extensible helper architecture for building new tools.
